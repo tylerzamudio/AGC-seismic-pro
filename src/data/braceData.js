@@ -146,13 +146,40 @@ export const OPM_PAGES = {
   // N-series codes (e.g. "63D") = anchor size prefix + load capacity letter
   // (see N0.00 table: 63=5/8", D=250 lbs max horizontal)
   "N0.00":  { pdf: 602, label: "Brace Bracket — Designation & Attachment Notes" },
-  "N1.14":  { pdf: 606, label: "Brace Bracket — To Cast-in-Place Concrete Slab / Beam / Wall" },
-  "N2.11":  { pdf: 640, label: "Brace Bracket — To Concrete-Filled Metal Deck" },
-  "N3.11":  { pdf: 715, label: "Brace Bracket — To Steel Beam / Open-Web Steel Truss" },
+
+  // Cast-in-Place Concrete (N1.xx) — p.603–638
+  "N1.10":  { pdf: 603, label: "Brace Bracket — Cast-In Insert Anchor (CIP Concrete)" },
+  "N1.14":  { pdf: 606, label: "Brace Bracket — To Cast-in-Place Concrete Slab / Beam / Wall (Standard)" },
+  "N1.15":  { pdf: 607, label: "Brace Bracket — Hilti KB-TZ Expansion Anchor (CIP Concrete, 1 Anchor)" },
+  "N1.16":  { pdf: 611, label: "Brace Bracket — Dewalt Power-Stud+ SD1 Expansion Anchor (CIP Concrete, 1 Anchor)" },
+  "N1.17":  { pdf: 619, label: "Brace Bracket — Dewalt Power-Stud+ SD2 Expansion Anchor (CIP Concrete, 1 Anchor)" },
+  "N1.18":  { pdf: 623, label: "Brace Bracket — Concrete Screw Anchor (CIP Concrete, 1 Screw)" },
+  "N1.19":  { pdf: 637, label: "Brace Bracket — Caddy CRLW Threaded Rod Anchor (CIP Concrete)" },
+
+  // Concrete-Filled Metal Deck (N2.xx) — p.639–714
+  "N2.10":  { pdf: 639, label: "Brace Bracket — MW-PAL-A-MD Power-Actuated Anchor (Conc-Filled Deck)" },
+  "N2.11":  { pdf: 640, label: "Brace Bracket — To Concrete-Filled Metal Deck (Standard)" },
+  "N2.12":  { pdf: 645, label: "Brace Bracket — Hilti KB-TZ Expansion Anchor (Conc-Filled Deck, 1 Anchor)" },
+  "N2.13":  { pdf: 653, label: "Brace Bracket — Dewalt Power-Stud+ SD1 Anchor (Conc-Filled Deck, 1 Anchor)" },
+  "N2.14":  { pdf: 680, label: "Brace Bracket — Dewalt Power-Stud+ SD2 Anchor (Conc-Filled Deck, 1 Anchor)" },
+  "N2.15":  { pdf: 688, label: "Brace Bracket — Concrete Screw Anchor (Conc-Filled Deck, 1 Screw)" },
+  "N2.16":  { pdf: 700, label: "Brace Bracket — Hilti KCM-MD Drive Anchor (Conc-Filled Deck)" },
+  "N2.17":  { pdf: 702, label: "Brace Bracket — Bang-It+ Powder-Actuated Anchor (Conc-Filled Deck)" },
+
+  // Structural Steel (N3.xx) — p.715–724
+  "N3.11":  { pdf: 715, label: "Brace Bracket — Self-Drilling Fasteners to Steel Beam / Open-Web Truss" },
   "N3.13":  { pdf: 717, label: "Brace Bracket — Welded to Structural Steel Beam" },
+  "N3.14":  { pdf: 718, label: "Brace Bracket — Beam Clamp to Steel Beam (Type 1)" },
+  "N3.15":  { pdf: 719, label: "Brace Bracket — Beam Clamp to Steel Beam (Type 2)" },
   "N3.30":  { pdf: 721, label: "Brace Bracket — To Steel Beam (Concrete-Filled Deck)" },
+
+  // CMU / Masonry Wall (N5.xx)
   "N5.10":  { pdf: 726, label: "Brace Bracket — To CMU Wall" },
+
+  // Metal Stud Wall (N6.xx)
   "N6.10":  { pdf: 728, label: "Brace Bracket — To Full-Height Metal Stud Wall" },
+
+  // Unfilled Metal Deck (N7.xx)
   "N7.10":  { pdf: 730, label: "Brace Bracket — To Non-Concrete-Filled Metal Deck" },
 };
 
@@ -696,6 +723,56 @@ export function getRodSize(designation) {
     if (designation.startsWith(prefix)) return size;
   }
   return "See schedule";
+}
+
+// =============================================================================
+// HELPER: Brace-to-Structure Attachment Options by Structure Type
+// Returns array of { key, label, icon, pdf, note } for each viable method.
+// Primary method is always first; alternates follow in recommended order.
+// =============================================================================
+export function getBraceAttachmentOptions(structure) {
+  switch (structure) {
+    case 'concrete':
+      return [
+        { key: 'N1.14', label: 'Standard 1-Anchor Bracket',         icon: '🏗',  pdf: 606, note: 'N1.14 — Drilled & epoxy/expansion to CIP slab/beam/wall (primary)' },
+        { key: 'N1.10', label: 'Cast-In Insert',                     icon: '🔩',  pdf: 603, note: 'N1.10 — Pre-placed cast-in insert anchor (preferred for new construction)' },
+        { key: 'N1.15', label: 'Hilti KB-TZ Expansion Anchor',       icon: '⚓',  pdf: 607, note: 'N1.15 — Torque-controlled expansion anchor, 1 anchor per bracket' },
+        { key: 'N1.16', label: 'Dewalt Power-Stud+ SD1',             icon: '⚓',  pdf: 611, note: 'N1.16 — Stud anchor SD1 type, 1 anchor per bracket' },
+        { key: 'N1.17', label: 'Dewalt Power-Stud+ SD2',             icon: '⚓',  pdf: 619, note: 'N1.17 — Stud anchor SD2 type, 1 anchor per bracket' },
+        { key: 'N1.18', label: 'Concrete Screw Anchor',               icon: '🔧',  pdf: 623, note: 'N1.18 — Screw anchor (e.g. Tapcon/Titen HD), 1 screw per bracket' },
+        { key: 'N1.19', label: 'Caddy CRLW Anchor',                   icon: '🔩',  pdf: 637, note: 'N1.19 — Caddy CRLW threaded rod anchor into CIP concrete' },
+      ]
+    case 'concreteSlab':
+      return [
+        { key: 'N2.11', label: 'Standard 1-Anchor Bracket',          icon: '🏗',  pdf: 640, note: 'N2.11 — Drilled expansion anchor into concrete topping (primary)' },
+        { key: 'N2.10', label: 'MW-PAL-A-MD Actuated Anchor',         icon: '💥',  pdf: 639, note: 'N2.10 — MW power-actuated anchor through deck into concrete' },
+        { key: 'N2.12', label: 'Hilti KB-TZ Expansion Anchor',        icon: '⚓',  pdf: 645, note: 'N2.12 — Torque-controlled expansion anchor, 1 anchor per bracket' },
+        { key: 'N2.13', label: 'Dewalt Power-Stud+ SD1',              icon: '⚓',  pdf: 653, note: 'N2.13 — Stud anchor SD1 type, 1 anchor per bracket' },
+        { key: 'N2.14', label: 'Dewalt Power-Stud+ SD2',              icon: '⚓',  pdf: 680, note: 'N2.14 — Stud anchor SD2 type, 1 anchor per bracket' },
+        { key: 'N2.15', label: 'Concrete Screw Anchor',                icon: '🔧',  pdf: 688, note: 'N2.15 — Screw anchor into concrete topping over metal deck' },
+        { key: 'N2.16', label: 'Hilti KCM-MD Drive Anchor',            icon: '🔩',  pdf: 700, note: 'N2.16 — Hilti KCM-MD cast-in-deck direct anchor' },
+        { key: 'N2.17', label: 'Bang-It+ Powder-Actuated Anchor',      icon: '💥',  pdf: 702, note: 'N2.17 — Bang-It+ PA anchor through deck into concrete topping' },
+      ]
+    case 'steel':
+      return [
+        { key: 'N3.11', label: 'Self-Drilling Fasteners (Primary)',    icon: '🔩',  pdf: 715, note: 'N3.11 — Self-drilling fasteners to steel beam or open-web truss' },
+        { key: 'N3.13', label: 'Welded Connection',                    icon: '⚡',  pdf: 717, note: 'N3.13 — Bracket welded directly to structural steel beam' },
+        { key: 'N3.14', label: 'Beam Clamp — Type 1',                  icon: '🔧',  pdf: 718, note: 'N3.14 — Clamp-on bracket to steel beam lower flange' },
+        { key: 'N3.15', label: 'Beam Clamp — Type 2',                  icon: '🔧',  pdf: 719, note: 'N3.15 — Alternate clamp-on bracket configuration' },
+      ]
+    case 'metalDeck':
+      return [
+        { key: 'N7.10', label: 'Non-Conc-Filled Metal Deck',           icon: '🏗',  pdf: 730, note: 'N7.10 — Bracket to non-concrete-filled (bare) metal deck' },
+      ]
+    case 'wood':
+      return [
+        { key: 'N0.00', label: 'Wood Structure — General Notes',       icon: '🪵',  pdf: 602, note: 'N0.00 — Lag bolt / through-bolt per general N-section notes' },
+      ]
+    default:
+      return [
+        { key: 'N0.00', label: 'Brace Bracket Designation Table',      icon: '📋',  pdf: 602, note: 'N0.00 — General notes and anchor designation table' },
+      ]
+  }
 }
 
 // =============================================================================

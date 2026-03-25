@@ -3,7 +3,7 @@ import {
   INDIV_SOLID_TABLES, INDIV_CABLE_TABLES,
   TRAPEZE_SOLID_TABLES, TRAPEZE_CABLE_STD_TABLES, TRAPEZE_CABLE_X_TABLES,
   PIPE_WEIGHTS, OPM_PAGES, getRodSize, findTrapezeRow, selectFpTier,
-  getCodeHangerSpacing,
+  getCodeHangerSpacing, getBraceAttachmentOptions,
 } from '../data/braceData'
 import { exportToPdf } from '../utils/exportPdf'
 
@@ -167,6 +167,39 @@ function RefCard({ icon, title, sub, pageNum, className = '' }) {
         <div className="ref-title">{title}</div>
         <div className="ref-sub">{sub}</div>
       </div>
+    </button>
+  )
+}
+
+// ── AttachCard ────────────────────────────────────────────────────────────────
+// Brace-to-structure attachment method card — clickable, opens OPM page.
+function AttachCard({ icon, label, note, pdf, isPrimary = false }) {
+  const [loading, setLoading] = useState(false)
+
+  async function handleClick() {
+    if (loading || !pdf) return
+    setLoading(true)
+    try { await openRefPage(pdf) }
+    catch (err) { console.error('[AttachCard]', err) }
+    finally { setLoading(false) }
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className={`attach-card${isPrimary ? ' attach-card-primary' : ''}${loading ? ' loading' : ''}`}
+      disabled={loading || !pdf}
+      title={`Open OPM detail — p.${pdf}`}
+    >
+      <div className="attach-icon">{loading ? '⏳' : icon}</div>
+      <div className="attach-body">
+        <div className="attach-label">
+          {label}
+          {isPrimary && <span className="attach-badge-primary">Primary</span>}
+        </div>
+        <div className="attach-note">{note}</div>
+      </div>
+      <div className="attach-arrow">{loading ? '' : '↗'}</div>
     </button>
   )
 }
@@ -568,6 +601,28 @@ export default function ResultsTable({ formData, onBack }) {
                   </tbody>
                 </table>
               )}
+            </div>
+          </section>
+
+          {/* Brace-to-Structure Attachment Methods */}
+          <section className="results-section">
+            <h3 className="section-title">⚓ Brace-to-Structure Attachment Methods</h3>
+            <p className="section-note">
+              Applicable methods for <strong>{STRUCTURE_LABELS[structure]}</strong>.
+              Click any card to open the detail drawing from the OPM.
+              The first card is the standard (primary) method; alternates follow.
+            </p>
+            <div className="attach-options-grid">
+              {getBraceAttachmentOptions(structure).map((opt, i) => (
+                <AttachCard
+                  key={opt.key}
+                  icon={opt.icon}
+                  label={opt.label}
+                  note={opt.note}
+                  pdf={opt.pdf}
+                  isPrimary={i === 0}
+                />
+              ))}
             </div>
           </section>
 
