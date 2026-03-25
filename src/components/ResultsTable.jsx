@@ -87,22 +87,38 @@ function DetailCode({ code }) {
 
 // ── DesigCode ─────────────────────────────────────────────────────────────────
 // Hanger or brace structure-attachment designation code (e.g. "38C", "63G").
-// If the code exists in OPM_PAGES it links to that exact page; otherwise it
-// falls back to the start of the relevant section (M0.00 for hangers, N0.00
-// for brace arms) so the user can navigate to the specific detail.
-function DesigCode({ code, type = 'hanger' }) {
+// For brace codes the fallback page is chosen by structure type so the user
+// lands directly on the relevant brace bracket attachment detail drawing.
+const BRACE_STRUCTURE_PAGE = {
+  concrete:     'N1.14',   // Cast-in-place Concrete → p.606
+  concreteSlab: 'N2.11',   // Concrete over Metal Deck → p.640
+  metalDeck:    'N7.10',   // Metal Decking (unfilled) → p.730
+  steel:        'N3.11',   // Structural Steel → p.715
+  wood:         'N0.00',   // Wood — use general N0.00 designation table
+}
+
+function DesigCode({ code, type = 'hanger', structure = 'concrete' }) {
   const [loading, setLoading] = useState(false)
   if (!code || code === '—') return <span className="detail-na">—</span>
 
   const entry = OPM_PAGES[code]
-  const sectionKey  = type === 'brace' ? 'N0.00' : 'M0.00'
-  const sectionPage = OPM_PAGES[sectionKey]?.pdf
-  const targetPage  = entry?.pdf ?? sectionPage
-  const titleText   = entry
-    ? `Ref. p.${entry.pdf}: ${entry.label}`
-    : type === 'brace'
-      ? `Brace Attachment Details — p.${sectionPage}`
-      : `Hanger Attachment Details — p.${sectionPage}`
+  let sectionKey, targetPage, titleText
+
+  if (type === 'brace') {
+    sectionKey = BRACE_STRUCTURE_PAGE[structure] ?? 'N0.00'
+    const sectionEntry = OPM_PAGES[sectionKey]
+    targetPage = entry?.pdf ?? sectionEntry?.pdf
+    titleText  = entry
+      ? `Ref. p.${entry.pdf}: ${entry.label}`
+      : `Brace Bracket Detail (${sectionEntry?.label ?? 'N-section'}) — p.${sectionEntry?.pdf}`
+  } else {
+    sectionKey  = 'M1.10'  // First real hanger drawing, not just the notes table
+    const sectionEntry = OPM_PAGES[sectionKey]
+    targetPage = entry?.pdf ?? sectionEntry?.pdf
+    titleText  = entry
+      ? `Ref. p.${entry.pdf}: ${entry.label}`
+      : `Hanger Attachment Details — p.${sectionEntry?.pdf}`
+  }
 
   async function handleClick(e) {
     e.preventDefault()
@@ -400,8 +416,8 @@ export default function ResultsTable({ formData, onBack }) {
                         <td><DesigCode code={row.hangerTrans} type="hanger" /></td>
                         <td><DesigCode code={row.hangerLong} type="hanger" /></td>
                         <td><DesigCode code={row.hangerAllDir} type="hanger" /></td>
-                        <td><DesigCode code={row.braceTrans} type="brace" /></td>
-                        <td><DesigCode code={row.braceLongAllDir} type="brace" /></td>
+                        <td><DesigCode code={row.braceTrans} type="brace" structure={structure} /></td>
+                        <td><DesigCode code={row.braceLongAllDir} type="brace" structure={structure} /></td>
                         <td>{getRodSize(row.hangerTrans)}</td>
                         <td>{getRodSize(row.braceTrans)}</td>
                       </tr>
@@ -443,8 +459,8 @@ export default function ResultsTable({ formData, onBack }) {
                         <td><DetailCode code={row.long} /></td>
                         <td><DetailCode code={row.allDir} /></td>
                         <td><DesigCode code={row.hangerConn} type="hanger" /></td>
-                        <td><DesigCode code={row.braceTrans} type="brace" /></td>
-                        <td><DesigCode code={row.braceLongAllDir} type="brace" /></td>
+                        <td><DesigCode code={row.braceTrans} type="brace" structure={structure} /></td>
+                        <td><DesigCode code={row.braceLongAllDir} type="brace" structure={structure} /></td>
                         <td>{getRodSize(row.hangerConn)}</td>
                         <td>{getRodSize(row.braceTrans)}</td>
                       </tr>
@@ -483,7 +499,7 @@ export default function ResultsTable({ formData, onBack }) {
                         <td><DetailCode code={row.allDir} /></td>
                         <td><DesigCode code={row.hangerTrans} type="hanger" /></td>
                         <td><DesigCode code={row.hangerAllDir} type="hanger" /></td>
-                        <td><DesigCode code={row.braceType} type="brace" /></td>
+                        <td><DesigCode code={row.braceType} type="brace" structure={structure} /></td>
                         <td>{getRodSize(row.hangerTrans)}</td>
                         <td>{getRodSize(row.braceType)}</td>
                       </tr>
@@ -545,7 +561,7 @@ export default function ResultsTable({ formData, onBack }) {
                         <td className="td-size">{row.weight} lbs/ft</td>
                         <td><DetailCode code={row.kitDetail} /></td>
                         <td><DesigCode code={row.hangerAttach} type="hanger" /></td>
-                        <td><DesigCode code={row.braceAttach} type="brace" /></td>
+                        <td><DesigCode code={row.braceAttach} type="brace" structure={structure} /></td>
                         <td>{getRodSize(row.hangerAttach)}</td>
                       </tr>
                     ))}

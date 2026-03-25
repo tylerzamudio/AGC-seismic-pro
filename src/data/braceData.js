@@ -138,9 +138,22 @@ export const OPM_PAGES = {
   "F3.13":  { pdf: 427, label: "Trapeze Cable X-Pattern — Heavy Load" },
   "F4.10":  { pdf: 428, label: "Trapeze — Wall Attachment Details" },
 
-  // ---- Hanger & Brace Structure Attachments ----
-  "M0.00":  { pdf: 434, label: "Hanger — Structure Attachment Details (start)" },
-  "N0.00":  { pdf: 558, label: "Brace — Structure Attachment Details (start)" },
+  // ---- Hanger Structure Attachments (M-section, p.434+) ----
+  "M0.00":  { pdf: 434, label: "Hanger — Designation & Attachment Notes" },
+  "M1.10":  { pdf: 435, label: "Hanger Attachment — To Concrete Slab / Beam" },
+
+  // ---- Brace Bracket Structure Attachments (N-section, p.602+) ----
+  // N-series codes (e.g. "63D") = anchor size prefix + load capacity letter
+  // (see N0.00 table: 63=5/8", D=250 lbs max horizontal)
+  "N0.00":  { pdf: 602, label: "Brace Bracket — Designation & Attachment Notes" },
+  "N1.14":  { pdf: 606, label: "Brace Bracket — To Cast-in-Place Concrete Slab / Beam / Wall" },
+  "N2.11":  { pdf: 640, label: "Brace Bracket — To Concrete-Filled Metal Deck" },
+  "N3.11":  { pdf: 715, label: "Brace Bracket — To Steel Beam / Open-Web Steel Truss" },
+  "N3.13":  { pdf: 717, label: "Brace Bracket — Welded to Structural Steel Beam" },
+  "N3.30":  { pdf: 721, label: "Brace Bracket — To Steel Beam (Concrete-Filled Deck)" },
+  "N5.10":  { pdf: 726, label: "Brace Bracket — To CMU Wall" },
+  "N6.10":  { pdf: 728, label: "Brace Bracket — To Full-Height Metal Stud Wall" },
+  "N7.10":  { pdf: 730, label: "Brace Bracket — To Non-Concrete-Filled Metal Deck" },
 };
 
 // =============================================================================
