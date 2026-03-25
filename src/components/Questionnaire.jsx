@@ -83,7 +83,7 @@ export default function Questionnaire({ onSubmit, initialData }) {
   const [braceType, setBraceType] = useState(initialData?.braceType || 'solid')
   const [ip, setIp] = useState(initialData?.ip || 1.0)
   const [spacingOption, setSpacingOption] = useState(initialData?.spacingOption || 1)
-  const [hangerSpacing, setHangerSpacing] = useState(initialData?.hangerSpacing || 10)
+  // hangerSpacing removed — auto-determined from code (CPC/NFPA 13/CMC/CEC)
   const [totalWeight, setTotalWeight] = useState(initialData?.totalWeight || '')
   const [structure, setStructure] = useState(initialData?.structure || 'concrete')
 
@@ -128,7 +128,6 @@ export default function Questionnaire({ onSubmit, initialData }) {
       serviceType, material, pipeSize: Number(pipeSize), installMethod,
       braceType, ip: Number(ip), fp: calculatedFp,
       spacingOption: Number(spacingOption),
-      hangerSpacing: Number(hangerSpacing),
       totalWeight: totalWeight ? Number(totalWeight) : null,
       structure,
     })
@@ -157,7 +156,7 @@ export default function Questionnaire({ onSubmit, initialData }) {
         </div>
       </div>
 
-      {/* Row 2: Size + Hanger Spacing */}
+      {/* Row 2: Size only — hanger spacing auto-set from code */}
       <div className="q-grid two-col">
         <div className="q-field">
           <label>
@@ -177,13 +176,13 @@ export default function Questionnaire({ onSubmit, initialData }) {
           )}
         </div>
         <div className="q-field">
-          <label>Hanger Spacing (ft)</label>
-          <input
-            type="number" min="1" max="20" step="0.5"
-            value={hangerSpacing}
-            onChange={e => setHangerSpacing(e.target.value)}
-          />
-          <span className="field-hint">Max 10–20 ft depending on pipe type</span>
+          <label>Hanger Spacing</label>
+          <div className="code-auto-badge">
+            Auto — set per applicable code
+          </div>
+          <span className="field-hint">
+            CPC 2022 (plumbing) · NFPA 13 (fire) · CMC / SMACNA (duct) · CEC 2023 (electrical)
+          </span>
         </div>
       </div>
 

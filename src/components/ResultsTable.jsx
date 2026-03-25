@@ -2,7 +2,8 @@ import { useState } from 'react'
 import {
   INDIV_SOLID_TABLES, INDIV_CABLE_TABLES,
   TRAPEZE_SOLID_TABLES, TRAPEZE_CABLE_STD_TABLES, TRAPEZE_CABLE_X_TABLES,
-  PIPE_WEIGHTS, OPM_PAGES, getRodSize, findTrapezeRow, selectFpTier
+  PIPE_WEIGHTS, OPM_PAGES, getRodSize, findTrapezeRow, selectFpTier,
+  getCodeHangerSpacing,
 } from '../data/braceData'
 import { exportToPdf } from '../utils/exportPdf'
 
@@ -190,6 +191,7 @@ export default function ResultsTable({ formData, onBack }) {
   const fpTier = selectFpTier(fp)
   const pipeWeight = PIPE_WEIGHTS[material]?.[pipeSize] ?? null
   const isTrapeze = installMethod === 'trapeze'
+  const hangerInfo = getCodeHangerSpacing(material, pipeSize)
 
   // ---- Resolve the brace table ----
   let tableData = null
@@ -340,6 +342,16 @@ export default function ResultsTable({ formData, onBack }) {
                   <div className="spacing-value">{pipeWeight} lbs/ft</div>
                 </div>
               )}
+            </div>
+
+            {/* Code-required hanger spacing */}
+            <div className="hanger-code-bar">
+              <span className="hanger-code-icon">📎</span>
+              <div className="hanger-code-text">
+                <strong>Max Hanger Spacing: {hangerInfo.spacing} ft</strong>
+                <span className="hanger-code-ref"> — {hangerInfo.note}</span>
+              </div>
+              <span className="hanger-code-badge">{hangerInfo.code}</span>
             </div>
           </section>
 

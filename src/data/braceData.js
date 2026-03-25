@@ -144,6 +144,53 @@ export const OPM_PAGES = {
 };
 
 // =============================================================================
+// CODE-MANDATED MAXIMUM HANGER SPACING
+// Sources: CPC 2022 §313, NFPA 13-2022 §9.1, CMC 2022 / SMACNA,
+//          CEC 2023 (NEC 2023) Articles 344 / 342 / 358 / 392
+// Returns { spacing (ft), code (string), note (string) }
+// =============================================================================
+export function getCodeHangerSpacing(material, pipeSize) {
+  const size = Number(pipeSize)
+  switch (material) {
+    // ── Plumbing (CPC 2022 Table 3-7) ─────────────────────────────────────
+    case 'steel':
+      return size <= 12
+        ? { spacing: 10, code: 'CPC 2022 §313', note: 'Steel pipe ≤12″' }
+        : { spacing: 12, code: 'CPC 2022 §313', note: 'Steel pipe ≥14″' }
+    case 'castIron':
+      return { spacing: 5, code: 'CPC 2022 §313', note: 'Cast iron — max 5 ft or at each joint' }
+    case 'copperTypeK':
+    case 'copperWithInsulation':
+      return size <= 1.25
+        ? { spacing: 6,  code: 'CPC 2022 §313', note: 'Copper ≤1¼″ — 6 ft max' }
+        : { spacing: 10, code: 'CPC 2022 §313', note: 'Copper ≥1½″ — 10 ft max' }
+    // ── Fire Protection (NFPA 13-2022 §9.1) ───────────────────────────────
+    case 'fireSprinkler_sch10':
+    case 'fireSprinkler_sch40':
+      return { spacing: 12, code: 'NFPA 13-2022 §9.1', note: 'Fire sprinkler steel pipe — 12 ft max' }
+    // ── Mechanical Ductwork (CMC 2022 / SMACNA HVAC Duct Const. Std.) ─────
+    case 'roundDuct':
+      return size <= 6
+        ? { spacing: 8,  code: 'CMC 2022 / SMACNA', note: 'Round duct ≤6″ dia. — 8 ft max' }
+        : { spacing: 10, code: 'CMC 2022 / SMACNA', note: 'Round duct >6″ dia. — 10 ft max' }
+    case 'rectDuct':
+      return { spacing: 8, code: 'CMC 2022 / SMACNA', note: 'Rectangular duct — 8 ft max' }
+    // ── Electrical (CEC 2023 / NEC 2023) ──────────────────────────────────
+    case 'rmc':
+      return { spacing: 10, code: 'CEC 2023 §344.30', note: 'Rigid Metal Conduit — 10 ft max' }
+    case 'imc':
+      return { spacing: 10, code: 'CEC 2023 §342.30', note: 'Intermediate Metal Conduit — 10 ft max' }
+    case 'emt':
+      return { spacing: 10, code: 'CEC 2023 §358.30', note: 'Electrical Metallic Tubing — 10 ft max' }
+    case 'cableTray':
+      return { spacing: 12, code: 'CEC 2023 §392.30', note: 'Cable tray — 12 ft max' }
+    // ── Default ───────────────────────────────────────────────────────────
+    default:
+      return { spacing: 10, code: 'General', note: '10 ft max (default)' }
+  }
+}
+
+// =============================================================================
 // PIPE WEIGHTS (lbs/ft) from Pipe Loads spreadsheets
 // =============================================================================
 export const PIPE_WEIGHTS = {
