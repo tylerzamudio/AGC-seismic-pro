@@ -27,7 +27,7 @@ export async function exportToPdf({
 }) {
   const {
     material, pipeSize, installMethod, braceType,
-    fp, spacingOption, totalWeight, structure,
+    fp, ip, spacingOption, totalWeight, structure,
   } = formData
 
   const spacing  = tableData?.spacing  || {}
@@ -83,7 +83,7 @@ export async function exportToPdf({
     !isTrapeze(installMethod) ? `${pipeSize}" dia.` : null,
     INSTALL_LABELS[installMethod],
     BRACE_LABELS[braceType],
-    `Fp = ${fp}g`,
+    `Ip = ${ip ?? 1.0} · Fp = ${fp}g`,
     STRUCTURE_LABELS[structure],
     tableRef ? `Table ${tableRef}` : null,
   ].filter(Boolean)

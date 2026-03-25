@@ -84,6 +84,47 @@ function DetailCode({ code }) {
   )
 }
 
+// ── DesigCode ─────────────────────────────────────────────────────────────────
+// Hanger or brace structure-attachment designation code (e.g. "38C", "63G").
+// If the code exists in OPM_PAGES it links to that exact page; otherwise it
+// falls back to the start of the relevant section (M0.00 for hangers, N0.00
+// for brace arms) so the user can navigate to the specific detail.
+function DesigCode({ code, type = 'hanger' }) {
+  const [loading, setLoading] = useState(false)
+  if (!code || code === '—') return <span className="detail-na">—</span>
+
+  const entry = OPM_PAGES[code]
+  const sectionKey  = type === 'brace' ? 'N0.00' : 'M0.00'
+  const sectionPage = OPM_PAGES[sectionKey]?.pdf
+  const targetPage  = entry?.pdf ?? sectionPage
+  const titleText   = entry
+    ? `Ref. p.${entry.pdf}: ${entry.label}`
+    : type === 'brace'
+      ? `Brace Attachment Details — p.${sectionPage}`
+      : `Hanger Attachment Details — p.${sectionPage}`
+
+  async function handleClick(e) {
+    e.preventDefault()
+    if (loading || !targetPage) return
+    setLoading(true)
+    try { await openRefPage(targetPage) }
+    catch (err) { console.error('[DesigCode]', err) }
+    finally { setLoading(false) }
+  }
+
+  return (
+    <a
+      href="#"
+      onClick={handleClick}
+      className={`detail-link desig-badge${type === 'brace' ? ' accent' : ''}`}
+      title={titleText}
+    >
+      {code}
+      <span className="link-icon">{loading ? '…' : '↗'}</span>
+    </a>
+  )
+}
+
 // ── RefCard ───────────────────────────────────────────────────────────────────
 // Quick-reference card button that fetches and opens an OPM page on click.
 function RefCard({ icon, title, sub, pageNum, className = '' }) {
@@ -244,7 +285,7 @@ export default function ResultsTable({ formData, onBack }) {
         {pipeSize && !isTrapeze && <span className="pill">{pipeSize}" dia.</span>}
         <span className="pill">{INSTALL_LABELS[installMethod]}</span>
         <span className="pill">{BRACE_LABELS[braceType]}</span>
-        <span className="pill fp-pill">Fp = {fp}g</span>
+        <span className="pill fp-pill">Ip = {formData.ip ?? 1.0} · Fp = {fp}g</span>
         <span className="pill">{STRUCTURE_LABELS[structure]}</span>
         {tableRef && <span className="pill table-pill">Table {tableRef}</span>}
       </div>
@@ -344,11 +385,11 @@ export default function ResultsTable({ formData, onBack }) {
                         <td><DetailCode code={row.trans} /></td>
                         <td><DetailCode code={row.long} /></td>
                         <td><DetailCode code={row.allDir} /></td>
-                        <td><span className="desig-badge">{row.hangerTrans}</span></td>
-                        <td><span className="desig-badge">{row.hangerLong}</span></td>
-                        <td><span className="desig-badge">{row.hangerAllDir}</span></td>
-                        <td><span className="desig-badge accent">{row.braceTrans}</span></td>
-                        <td><span className="desig-badge accent">{row.braceLongAllDir}</span></td>
+                        <td><DesigCode code={row.hangerTrans} type="hanger" /></td>
+                        <td><DesigCode code={row.hangerLong} type="hanger" /></td>
+                        <td><DesigCode code={row.hangerAllDir} type="hanger" /></td>
+                        <td><DesigCode code={row.braceTrans} type="brace" /></td>
+                        <td><DesigCode code={row.braceLongAllDir} type="brace" /></td>
                         <td>{getRodSize(row.hangerTrans)}</td>
                         <td>{getRodSize(row.braceTrans)}</td>
                       </tr>
@@ -389,9 +430,9 @@ export default function ResultsTable({ formData, onBack }) {
                         <td><DetailCode code={row.trans} /></td>
                         <td><DetailCode code={row.long} /></td>
                         <td><DetailCode code={row.allDir} /></td>
-                        <td><span className="desig-badge">{row.hangerConn}</span></td>
-                        <td><span className="desig-badge accent">{row.braceTrans}</span></td>
-                        <td><span className="desig-badge accent">{row.braceLongAllDir}</span></td>
+                        <td><DesigCode code={row.hangerConn} type="hanger" /></td>
+                        <td><DesigCode code={row.braceTrans} type="brace" /></td>
+                        <td><DesigCode code={row.braceLongAllDir} type="brace" /></td>
                         <td>{getRodSize(row.hangerConn)}</td>
                         <td>{getRodSize(row.braceTrans)}</td>
                       </tr>
@@ -428,9 +469,9 @@ export default function ResultsTable({ formData, onBack }) {
                         <td><DetailCode code={row.trans} /></td>
                         <td><DetailCode code={row.long} /></td>
                         <td><DetailCode code={row.allDir} /></td>
-                        <td><span className="desig-badge">{row.hangerTrans}</span></td>
-                        <td><span className="desig-badge">{row.hangerAllDir}</span></td>
-                        <td><span className="desig-badge accent">{row.braceType}</span></td>
+                        <td><DesigCode code={row.hangerTrans} type="hanger" /></td>
+                        <td><DesigCode code={row.hangerAllDir} type="hanger" /></td>
+                        <td><DesigCode code={row.braceType} type="brace" /></td>
                         <td>{getRodSize(row.hangerTrans)}</td>
                         <td>{getRodSize(row.braceType)}</td>
                       </tr>
@@ -465,8 +506,8 @@ export default function ResultsTable({ formData, onBack }) {
                         <td><DetailCode code={row.trans} /></td>
                         <td><DetailCode code={row.long} /></td>
                         <td><DetailCode code={row.allDir} /></td>
-                        <td><span className="desig-badge">{row.hangerTrans}</span></td>
-                        <td><span className="desig-badge">{row.hangerAllDir}</span></td>
+                        <td><DesigCode code={row.hangerTrans} type="hanger" /></td>
+                        <td><DesigCode code={row.hangerAllDir} type="hanger" /></td>
                         <td>{getRodSize(row.hangerTrans)}</td>
                       </tr>
                     ))}
@@ -491,8 +532,8 @@ export default function ResultsTable({ formData, onBack }) {
                       <tr key={i} className="row-highlight">
                         <td className="td-size">{row.weight} lbs/ft</td>
                         <td><DetailCode code={row.kitDetail} /></td>
-                        <td><span className="desig-badge">{row.hangerAttach}</span></td>
-                        <td><span className="desig-badge accent">{row.braceAttach}</span></td>
+                        <td><DesigCode code={row.hangerAttach} type="hanger" /></td>
+                        <td><DesigCode code={row.braceAttach} type="brace" /></td>
                         <td>{getRodSize(row.hangerAttach)}</td>
                       </tr>
                     ))}

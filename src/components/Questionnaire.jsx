@@ -57,13 +57,17 @@ const BRACE_TYPES = [
   { value: 'cableX', label: 'Cable Brace — X-Pattern (trapeze only)' },
 ]
 
-const FP_OPTIONS = [
-  { value: 0.25, label: '0.25g — Low seismic / basement' },
-  { value: 0.5, label: '0.50g — Moderate seismic' },
-  { value: 1.0, label: '1.00g — High seismic' },
-  { value: 1.5, label: '1.50g — Very high seismic' },
-  { value: 2.0, label: '2.00g — Extreme seismic' },
-  { value: 2.5, label: '2.50g — Maximum allowed' },
+const IP_OPTIONS = [
+  {
+    value: 1.0,
+    label: 'Ip = 1.0 — Standard Occupancy',
+    desc: 'Commercial, industrial, residential (typical) → Fp = 0.5g',
+  },
+  {
+    value: 1.5,
+    label: 'Ip = 1.5 — Essential Facility',
+    desc: 'Hospitals, fire stations, hazardous materials → Fp = 1.0g',
+  },
 ]
 
 const SPACING_OPTIONS = [
@@ -77,7 +81,7 @@ export default function Questionnaire({ onSubmit, initialData }) {
   const [pipeSize, setPipeSize] = useState(initialData?.pipeSize || 4)
   const [installMethod, setInstallMethod] = useState(initialData?.installMethod || 'individual')
   const [braceType, setBraceType] = useState(initialData?.braceType || 'solid')
-  const [fp, setFp] = useState(initialData?.fp || 0.5)
+  const [ip, setIp] = useState(initialData?.ip || 1.0)
   const [spacingOption, setSpacingOption] = useState(initialData?.spacingOption || 1)
   const [hangerSpacing, setHangerSpacing] = useState(initialData?.hangerSpacing || 10)
   const [totalWeight, setTotalWeight] = useState(initialData?.totalWeight || '')
@@ -116,9 +120,14 @@ export default function Questionnaire({ onSubmit, initialData }) {
 
   function handleSubmit(e) {
     e.preventDefault()
+    // Fp derived from Ip per ASCE 7-22 (CBC 2025):
+    //   Ip 1.0 → 0.5g  (standard occupancy, SDC D typical CA)
+    //   Ip 1.5 → 1.0g  (essential facility)
+    const calculatedFp = Number(ip) === 1.5 ? 1.0 : 0.5
     onSubmit({
       serviceType, material, pipeSize: Number(pipeSize), installMethod,
-      braceType, fp: Number(fp), spacingOption: Number(spacingOption),
+      braceType, ip: Number(ip), fp: calculatedFp,
+      spacingOption: Number(spacingOption),
       hangerSpacing: Number(hangerSpacing),
       totalWeight: totalWeight ? Number(totalWeight) : null,
       structure,
@@ -213,16 +222,23 @@ export default function Questionnaire({ onSubmit, initialData }) {
         </div>
       </div>
 
-      {/* Row 4: Fp + Structure */}
+      {/* Row 4: Ip + Structure */}
       <div className="q-grid two-col">
         <div className="q-field">
-          <label>Seismic Lateral Force (Fp)</label>
-          <select value={fp} onChange={e => setFp(e.target.value)}>
-            {FP_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <span className="field-hint">
-            From structural drawings (SDS × Ip × Rp factors). Max design limit = 2.5g
-          </span>
+          <label>Importance Factor (Ip) — CBC 2025 / ASCE 7-22</label>
+          {IP_OPTIONS.map(opt => (
+            <label key={opt.value} className="radio-label">
+              <input
+                type="radio" name="ip" value={opt.value}
+                checked={Number(ip) === opt.value}
+                onChange={() => setIp(opt.value)}
+              />
+              {opt.label}
+              <span className="field-hint" style={{ display: 'block', marginLeft: '1.4rem' }}>
+                {opt.desc}
+              </span>
+            </label>
+          ))}
         </div>
         <div className="q-field">
           <label>Structure / Substrate</label>
