@@ -37,7 +37,7 @@ function opmPagesPlugin() {
           const opmBytes = readFileSync(OPM_PATH)
           const srcDoc   = await PDFDocument.load(opmBytes, { ignoreEncryption: true })
           const destDoc  = await PDFDocument.create()
-          const copied   = await destDoc.copyPagesFrom(srcDoc, pages.map(p => p - 1))
+          const copied   = await destDoc.copyPages(srcDoc, pages.map(p => p - 1))
           copied.forEach(p => destDoc.addPage(p))
           const out = await destDoc.save()
 

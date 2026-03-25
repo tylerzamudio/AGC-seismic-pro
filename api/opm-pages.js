@@ -62,7 +62,7 @@ export default async function handler(req, res) {
 
     // Convert 1-based page numbers to 0-based indices
     const indices = pages.map(p => p - 1)
-    const copied  = await destDoc.copyPagesFrom(srcDoc, indices)
+    const copied  = await destDoc.copyPages(srcDoc, indices)
     copied.forEach(p => destDoc.addPage(p))
 
     const pdfBytes = await destDoc.save()

@@ -396,7 +396,7 @@ export async function exportToPdf({
     // ── 3. Copy all extracted detail pages into the main document ─────────
     // Schedule = page index 0; detail pages start at index 1, 2, 3 …
     const detailPageCount = extractedDoc.getPageCount()
-    const copiedPages = await mainDoc.copyPagesFrom(
+    const copiedPages = await mainDoc.copyPages(
       extractedDoc,
       [...Array(detailPageCount).keys()],
     )
