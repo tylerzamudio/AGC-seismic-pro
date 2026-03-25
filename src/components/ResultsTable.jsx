@@ -234,13 +234,29 @@ export default function ResultsTable({ formData, onBack }) {
 
   const {
     serviceType, material, pipeSize, installMethod, braceType,
-    fp, spacingOption, hangerSpacing, totalWeight, structure
+    fp, spacingOption, totalWeight, trapezeRows, structure
   } = formData
 
   const fpTier = selectFpTier(fp)
   const pipeWeight = PIPE_WEIGHTS[material]?.[pipeSize] ?? null
   const isTrapeze = installMethod === 'trapeze'
-  const hangerInfo = getCodeHangerSpacing(material, pipeSize)
+
+  // For trapeze: hanger spacing = most restrictive (smallest) across all pipes on the trapeze.
+  // Per code, the entire trapeze must be hung at the tightest interval required by any member.
+  const hangerInfo = (() => {
+    if (isTrapeze && trapezeRows?.length) {
+      const allInfos = trapezeRows.map(r => getCodeHangerSpacing(r.material, r.pipeSize))
+      const governing = allInfos.reduce((min, cur) => cur.spacing < min.spacing ? cur : min)
+      // If multiple pipes govern at the same spacing, collect their codes
+      const govCodes = [...new Set(allInfos.filter(i => i.spacing === governing.spacing).map(i => i.code))]
+      return {
+        spacing: governing.spacing,
+        code: govCodes.join(' / '),
+        note: `Most restrictive of ${trapezeRows.length} member${trapezeRows.length > 1 ? 's' : ''} on trapeze`,
+      }
+    }
+    return getCodeHangerSpacing(material, pipeSize)
+  })()
 
   // ---- Resolve the brace table ----
   let tableData = null

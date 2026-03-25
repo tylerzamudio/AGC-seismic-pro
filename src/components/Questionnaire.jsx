@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { PIPE_WEIGHTS } from '../data/braceData'
 
 // ---- Config options ----
 const SERVICE_TYPES = [
@@ -75,6 +76,22 @@ const SPACING_OPTIONS = [
   { value: 3, label: 'Option 3 — Reduced transverse spacing (tighter brace)' },
 ]
 
+// All material types allowed on a trapeze (mixed services common)
+const TRAPEZE_MATERIALS = [
+  { value: 'steel',                label: 'Steel Pipe (Sch 10+)' },
+  { value: 'castIron',             label: 'Cast Iron Pipe' },
+  { value: 'copperTypeK',          label: 'Copper Type K' },
+  { value: 'copperWithInsulation', label: 'Copper w/ Insulation' },
+  { value: 'fireSprinkler_sch10',  label: 'Fire Sprinkler Sch 10' },
+  { value: 'fireSprinkler_sch40',  label: 'Fire Sprinkler Sch 40' },
+  { value: 'rmc',                  label: 'RMC Conduit' },
+  { value: 'imc',                  label: 'IMC Conduit' },
+  { value: 'emt',                  label: 'EMT Conduit' },
+  { value: 'cableTray',            label: 'Cable Tray' },
+  { value: 'rectDuct',             label: 'Rectangular Duct' },
+  { value: 'roundDuct',            label: 'Round Duct' },
+]
+
 export default function Questionnaire({ onSubmit, initialData }) {
   const [serviceType, setServiceType] = useState(initialData?.serviceType || 'pipe')
   const [material, setMaterial] = useState(initialData?.material || 'steel')
@@ -83,9 +100,46 @@ export default function Questionnaire({ onSubmit, initialData }) {
   const [braceType, setBraceType] = useState(initialData?.braceType || 'solid')
   const [ip, setIp] = useState(initialData?.ip || 1.0)
   const [spacingOption, setSpacingOption] = useState(initialData?.spacingOption || 1)
-  // hangerSpacing removed — auto-determined from code (CPC/NFPA 13/CMC/CEC)
-  const [totalWeight, setTotalWeight] = useState(initialData?.totalWeight || '')
   const [structure, setStructure] = useState(initialData?.structure || 'concrete')
+
+  // Multi-pipe trapeze schedule
+  const nextRowId = useRef(2)
+  const [trapezeRows, setTrapezeRows] = useState(
+    initialData?.trapezeRows?.length
+      ? initialData.trapezeRows
+      : [{ id: 1, material: 'steel', pipeSize: 4, qty: 1, manualPlf: '' }]
+  )
+
+  function addTrapezeRow() {
+    setTrapezeRows(prev => [...prev, {
+      id: nextRowId.current++,
+      material: 'steel', pipeSize: 4, qty: 1, manualPlf: '',
+    }])
+  }
+
+  function removeTrapezeRow(id) {
+    setTrapezeRows(prev => prev.filter(r => r.id !== id))
+  }
+
+  function updateTrapezeRow(id, field, value) {
+    setTrapezeRows(prev => prev.map(r => {
+      if (r.id !== id) return r
+      const updated = { ...r, [field]: value }
+      if (field === 'material') {
+        const sizes = PIPE_SIZES[value]
+        updated.pipeSize = sizes ? sizes[Math.min(2, sizes.length - 1)] : 4
+        updated.manualPlf = ''
+      }
+      return updated
+    }))
+  }
+
+  // Total lbs/ft for the trapeze — auto where weight table exists, else manual
+  const totalTrapezePlf = trapezeRows.reduce((sum, row) => {
+    const autoW = PIPE_WEIGHTS[row.material]?.[Number(row.pipeSize)]
+    const unitPlf = autoW != null ? autoW : (parseFloat(row.manualPlf) || 0)
+    return sum + unitPlf * (parseInt(row.qty) || 1)
+  }, 0)
 
   // Reset material + size when service type changes
   useEffect(() => {
@@ -120,15 +174,13 @@ export default function Questionnaire({ onSubmit, initialData }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-    // Fp derived from Ip per ASCE 7-22 (CBC 2025):
-    //   Ip 1.0 → 0.5g  (standard occupancy, SDC D typical CA)
-    //   Ip 1.5 → 1.0g  (essential facility)
     const calculatedFp = Number(ip) === 1.5 ? 1.0 : 0.5
     onSubmit({
       serviceType, material, pipeSize: Number(pipeSize), installMethod,
       braceType, ip: Number(ip), fp: calculatedFp,
       spacingOption: Number(spacingOption),
-      totalWeight: totalWeight ? Number(totalWeight) : null,
+      totalWeight: isTrapeze ? (totalTrapezePlf > 0 ? Math.round(totalTrapezePlf) : null) : null,
+      trapezeRows: isTrapeze ? trapezeRows : [],
       structure,
     })
   }
@@ -251,7 +303,7 @@ export default function Questionnaire({ onSubmit, initialData }) {
         </div>
       </div>
 
-      {/* Row 5: Table Option + Trapeze Weight */}
+      {/* Row 5: Spacing Option + Trapeze Total */}
       <div className="q-grid two-col">
         <div className="q-field">
           <label>Brace Spacing Option</label>
@@ -267,21 +319,124 @@ export default function Questionnaire({ onSubmit, initialData }) {
           ))}
         </div>
         {isTrapeze && (
-          <div className="q-field highlight-field">
-            <label>Total Trapeze Load (lbs/ft) <span className="required">*</span></label>
-            <input
-              type="number" min="1" step="1"
-              value={totalWeight}
-              onChange={e => setTotalWeight(e.target.value)}
-              placeholder="e.g. 80 (sum of all pipes on trapeze)"
-              required={isTrapeze}
-            />
-            <span className="field-hint">
-              Sum of all pipe weights + fluid on the trapeze (use spreadsheets to calculate)
-            </span>
+          <div className="q-field">
+            <label>Computed Trapeze Load</label>
+            <div className={`trapeze-total-display${totalTrapezePlf > 0 ? ' has-value' : ''}`}>
+              <span className="trapeze-total-value">{totalTrapezePlf.toFixed(1)}</span>
+              <span className="trapeze-total-unit"> lbs/ft total</span>
+            </div>
+            <span className="field-hint">Auto-calculated from pipe schedule below</span>
           </div>
         )}
       </div>
+
+      {/* Trapeze Multi-Pipe Builder */}
+      {isTrapeze && (
+        <div className="q-trapeze-builder">
+          <div className="trapeze-builder-header">
+            <label>Trapeze Pipe Schedule</label>
+            <span className="field-hint">
+              Add every pipe, conduit, or duct on this trapeze. Weights are auto-filled where available; enter manually for duct/conduit.
+            </span>
+          </div>
+
+          <div className="trapeze-col-labels">
+            <span className="tcl-num">#</span>
+            <span className="tcl-mat">Material</span>
+            <span className="tcl-size">Size</span>
+            <span className="tcl-qty">Qty</span>
+            <span className="tcl-plf">Weight contribution</span>
+          </div>
+
+          {trapezeRows.map((row, idx) => {
+            const autoW  = PIPE_WEIGHTS[row.material]?.[Number(row.pipeSize)]
+            const sizes  = PIPE_SIZES[row.material]
+            const rowPlf = autoW != null
+              ? autoW * (parseInt(row.qty) || 1)
+              : (parseFloat(row.manualPlf) || 0) * (parseInt(row.qty) || 1)
+
+            return (
+              <div key={row.id} className="trapeze-row">
+                <span className="trapeze-row-num">{idx + 1}</span>
+
+                {/* Material */}
+                <select
+                  className="trapeze-select trapeze-select-mat"
+                  value={row.material}
+                  onChange={e => updateTrapezeRow(row.id, 'material', e.target.value)}
+                >
+                  {TRAPEZE_MATERIALS.map(m => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+
+                {/* Size */}
+                {sizes ? (
+                  <select
+                    className="trapeze-select trapeze-select-size"
+                    value={row.pipeSize}
+                    onChange={e => updateTrapezeRow(row.id, 'pipeSize', e.target.value)}
+                  >
+                    {sizes.map(s => <option key={s} value={s}>{s}"</option>)}
+                  </select>
+                ) : (
+                  <input
+                    type="number" min="1" step="1"
+                    className="trapeze-input trapeze-input-size"
+                    value={row.pipeSize}
+                    onChange={e => updateTrapezeRow(row.id, 'pipeSize', e.target.value)}
+                    placeholder='in"'
+                  />
+                )}
+
+                {/* Qty */}
+                <input
+                  type="number" min="1" step="1"
+                  className="trapeze-input trapeze-input-qty"
+                  value={row.qty}
+                  onChange={e => updateTrapezeRow(row.id, 'qty', e.target.value)}
+                />
+
+                {/* PLF auto display OR manual input */}
+                {autoW != null ? (
+                  <div className="trapeze-plf-cell trapeze-plf-auto">
+                    <span className="trapeze-plf-unit-val">{autoW}</span>
+                    <span className="trapeze-plf-x"> × {row.qty} = </span>
+                    <strong className="trapeze-plf-total">{rowPlf.toFixed(1)} lbs/ft</strong>
+                  </div>
+                ) : (
+                  <div className="trapeze-plf-cell trapeze-plf-manual">
+                    <input
+                      type="number" min="0" step="0.1"
+                      className="trapeze-input trapeze-input-plf"
+                      value={row.manualPlf}
+                      onChange={e => updateTrapezeRow(row.id, 'manualPlf', e.target.value)}
+                      placeholder="lbs/ft ea"
+                    />
+                    {row.manualPlf > 0 && (
+                      <strong className="trapeze-plf-total"> = {rowPlf.toFixed(1)} lbs/ft</strong>
+                    )}
+                  </div>
+                )}
+
+                {/* Remove */}
+                {trapezeRows.length > 1 && (
+                  <button
+                    type="button"
+                    className="trapeze-remove-btn"
+                    onClick={() => removeTrapezeRow(row.id)}
+                    title="Remove this row"
+                  >×</button>
+                )}
+              </div>
+            )
+          })}
+
+          <button type="button" className="trapeze-add-btn" onClick={addTrapezeRow}>
+            + Add Pipe / Conduit / Duct
+          </button>
+        </div>
+      )}
 
       <div className="q-actions">
         <button type="submit" className="btn-primary">

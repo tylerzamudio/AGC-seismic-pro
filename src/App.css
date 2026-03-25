@@ -567,6 +567,199 @@ td.rod-group { background: #faf5ff; }
   }
 }
 
+/* ---- Trapeze Computed Total Display ---- */
+.trapeze-total-display {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  background: #f0f2f5;
+  border: 1.5px solid #d0d7e3;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-top: 4px;
+}
+.trapeze-total-display.has-value {
+  background: #e8f0fe;
+  border-color: #2d4a8a;
+}
+.trapeze-total-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a2744;
+}
+.trapeze-total-unit {
+  font-size: 0.8rem;
+  color: #5a6680;
+  font-weight: 500;
+}
+
+/* ---- Trapeze Multi-Pipe Builder ---- */
+.q-trapeze-builder {
+  background: #f8f9fc;
+  border: 1.5px solid #d0d7e3;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trapeze-builder-header label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #1a2744;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Column header labels */
+.trapeze-col-labels {
+  display: grid;
+  grid-template-columns: 28px 1fr 90px 54px 1fr;
+  gap: 8px;
+  padding: 0 4px;
+  align-items: center;
+}
+.trapeze-col-labels span {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8a95aa;
+}
+
+/* Each pipe row */
+.trapeze-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 90px 54px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #dde2ec;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.trapeze-row-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #8a95aa;
+  text-align: center;
+}
+
+.trapeze-select,
+.trapeze-input {
+  font-size: 0.82rem;
+  padding: 5px 7px;
+  border: 1px solid #c8d0df;
+  border-radius: 6px;
+  background: #fff;
+  color: #1a2744;
+  width: 100%;
+  box-sizing: border-box;
+}
+.trapeze-select:focus,
+.trapeze-input:focus {
+  outline: none;
+  border-color: #2d4a8a;
+  box-shadow: 0 0 0 2px rgba(45,74,138,0.12);
+}
+
+.trapeze-input-qty {
+  text-align: center;
+}
+
+/* PLF display cells */
+.trapeze-plf-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+}
+.trapeze-plf-auto {
+  color: #4a5568;
+}
+.trapeze-plf-unit-val {
+  color: #5a6680;
+}
+.trapeze-plf-x {
+  color: #8a95aa;
+}
+.trapeze-plf-total {
+  color: #1a2744;
+  font-weight: 700;
+}
+.trapeze-plf-manual {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.trapeze-input-plf {
+  width: 90px !important;
+}
+
+/* Remove button */
+.trapeze-remove-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #e0e4ed;
+  background: #fff;
+  color: #8a95aa;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+}
+.trapeze-remove-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+/* Add row button */
+.trapeze-add-btn {
+  align-self: flex-start;
+  background: none;
+  border: 1.5px dashed #2d4a8a;
+  border-radius: 8px;
+  color: #2d4a8a;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+  margin-top: 2px;
+}
+.trapeze-add-btn:hover {
+  background: #eef2ff;
+}
+
+/* Responsive: stack at narrow width */
+@media (max-width: 640px) {
+  .trapeze-col-labels {
+    display: none;
+  }
+  .trapeze-row {
+    grid-template-columns: 28px 1fr 70px 44px;
+    grid-template-rows: auto auto;
+  }
+  .trapeze-plf-cell {
+    grid-column: 2 / -1;
+  }
+}
+
+/* ---- end trapeze builder ---- */
+
 /* ---- Brace-to-Structure Attachment Cards ---- */
 .attach-options-grid {
   display: grid;
