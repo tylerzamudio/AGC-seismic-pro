@@ -372,6 +372,15 @@ export default function ResultsTable({ formData, onBack }) {
         </div>
       )}
 
+      {/* Copper methodology note */}
+      {!noData && (material === 'copperTypeK' || material === 'copperWithInsulation') && (
+        <div className="alert alert-info">
+          ℹ️ Copper pipe hardware is sized by W×L (PLF × support spacing) comparison to AGC OPM
+          B-table steel rows per standard engineering methodology. Connection details (C1.xx / C2.xx)
+          are diameter-based and apply to all pipe materials. Verify with EOR for critical applications.
+        </div>
+      )}
+
       {/* ===== MAIN RESULTS CARD ===== */}
       {!noData && (
         <div className="results-card">
